@@ -253,7 +253,7 @@ describe('ScheduleSelector', () => {
       const mockNextProps = {
         selection: ['foo', 'bar']
       }
-      component.instance().componentWillReceiveProps(mockNextProps)
+      component.instance().UNSAFE_componentWillReceiveProps(mockNextProps)
       expect(setStateSpy).toHaveBeenCalledWith({
         selectionDraft: expect.arrayContaining(mockNextProps.selection)
       })

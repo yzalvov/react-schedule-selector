@@ -28,6 +28,9 @@ const Grid = styled.div`
   align-items: stretch;
   width: 100%;
 `
+const GridColumnist = styled(Grid)`
+  flex-direction: column;
+`
 
 const Column = styled.div`
   display: flex;
@@ -35,15 +38,21 @@ const Column = styled.div`
   justify-content: space-evenly;
   flex-grow: 1;
 `
+const Row = styled(Column)`
+  flex-direction: row;
+  /* justify-content: space-evenly; */
+`
 
 export const GridCell = styled.div`
   margin: ${props => props.margin}px;
   touch-action: none;
+  /* width: 100%; */
+  /* min-height: ${p => 5 * p.margin}px; */
 `
 
 const DateCell = styled.div`
   width: 100%;
-  height: 25px;
+  /* height: 100%; */
   background-color: ${props => (props.selected ? props.selectedColor : props.unselectedColor)};
 
   &:hover {
@@ -63,7 +72,7 @@ const TimeLabelCell = styled.div`
   display: block;
   width: 100%;
   height: 25px;
-  /* margin: 3px 0; */
+  margin: 3px 0;
   text-align: center;
   display: flex;
   justify-content: center;
@@ -71,7 +80,7 @@ const TimeLabelCell = styled.div`
 `
 
 const TimeText = styled(Text)`
-  /* margin: 0; */
+  margin: 0;
   @media (max-width: 699px) {
     font-size: 10px;
   }
@@ -201,7 +210,7 @@ export default class ScheduleSelector extends React.Component<PropsType, StateTy
     })
   }
 
-  componentWillReceiveProps(nextProps: PropsType) {
+  UNSAFE_componentWillReceiveProps(nextProps: PropsType) {
     this.setState({
       selectionDraft: [...nextProps.selection]
     })
@@ -293,7 +302,7 @@ export default class ScheduleSelector extends React.Component<PropsType, StateTy
     this.setState({ isTouchDragging: false })
   }
 
-  renderTimeLabels = (): React.Element<*> => {
+  renderTimeLabelsColumn = (): React.Element<*> => {
     const labels = [<DateLabel key={-1} />] // Ensures time labels start at correct location
     this.dates[0].forEach(time => {
       labels.push(
@@ -305,13 +314,38 @@ export default class ScheduleSelector extends React.Component<PropsType, StateTy
     return <Column margin={this.props.margin}>{labels}</Column>
   }
 
-  renderDateColumn = (dayOfTimes: Array<Date>) => (
-    <Column key={dayOfTimes[0]} margin={this.props.margin}>
+  renderTimeLabelsRow = (): React.Element<*> => {
+    const labels = [<TimeLabelCell key={-1} />] // Ensures time labels start at correct location
+    this.dates[0].forEach(time => {
+      labels.push(
+        <TimeLabelCell key={time}>
+          <TimeText>{formatDate(time, this.props.timeFormat)}</TimeText>
+        </TimeLabelCell>
+      )
+    })
+    return <Row margin={this.props.margin}>{labels}</Row>
+  }
+
+  renderDateColumn = (dayOfTimes: Array<Date>) => {
+    // console.log(dayOfTimes)
+
+    return (
+      <Column key={dayOfTimes[0]} margin={this.props.margin}>
+        <GridCell margin={this.props.margin}>
+          <DateLabel>{formatDate(dayOfTimes[0], this.props.dateFormat)}</DateLabel>
+        </GridCell>
+        {dayOfTimes.map(time => this.renderDateCellWrapper(time))}
+      </Column>
+    )
+  }
+
+  renderDateRow = (dayOfTimes: Array<Date>) => (
+    <Row key={dayOfTimes[0]} margin={this.props.margin}>
       <GridCell margin={this.props.margin}>
         <DateLabel>{formatDate(dayOfTimes[0], this.props.dateFormat)}</DateLabel>
       </GridCell>
       {dayOfTimes.map(time => this.renderDateCellWrapper(time))}
-    </Column>
+    </Row>
   )
 
   renderDateCellWrapper = (time: Date): React.Element<*> => {
@@ -376,9 +410,18 @@ export default class ScheduleSelector extends React.Component<PropsType, StateTy
               this.gridRef = el
             }}
           >
-            {this.renderTimeLabels()}
+            {this.renderTimeLabelsColumn()}
             {this.dates.map(this.renderDateColumn)}
           </Grid>
+
+          // <GridColumnist
+          //   innerRef={el => {
+          //     this.gridRef = el
+          //   }}
+          // >
+          //   {this.renderTimeLabelsRow()}
+          //   {this.dates.map(this.renderDateRow)}
+          // </GridColumnist>
         }
       </Wrapper>
     )
